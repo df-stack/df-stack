@@ -1,7 +1,7 @@
 - 👋 Hi, I’m @df-stack
 - 👀 I’m interested in staying active, learning new things and helping my community. <3
 - 🌱 I’m currently learning JavaScript and putting SEO knowledge in practice. :)
-- 💞️ I’m looking to collaborate on outdoor community projects and tech literacy community projects!
+- 💞️ I’m looking to collaborate on environmental stewardship projects and tech literacy community projects!
 - 📫 How to reach me ... Connect with me here!
 
 <!---
