@@ -1,0 +1,63 @@
+#THM TakeOver: My Solution involving FFUF. Beginner friendly.
+
+#Step 0: Did a preliminary search for possible subdomains.
+From the scenario, we gather that some of the things Futurevera does are "...write blogs about it" and "help students with space questions, but we are rebuilding our support".
+Their website might have a page for those blogs being written and a dedicated support team who helps the students.
+On the VM, I opened Firefox and visited https://futurevera.thm to see what pages I can visit, etc. but got nothing--the website can't be reached.
+The website's certificate is also not available to be viewed.
+Visiting the Developer's tool (F12 for Windows) also didn't show any subdomain (website pages) either.
+
+#Step 1️⃣: Performing an nmap scan to see what ports are there (not needed for this problem, but I'm listing it because this is what I did lol)
+
+sudo nmap -sS -T5 -sV -O MACHINE_IP
+
+#Step 2️⃣: Use ffuf to search for possible subdomains--since I didn't see any subdomains with my methods above.
+I'm going to get help from ffuf. ffuf will replace "FUZZ" (below) with a word to check for a possible match. Each match is a subdomain.
+It will do so brute forcefully--if this is even a word 🤭.
+IMPORTANT: You will need a source of some sort for a list of words that ffuf will use to plug into "FUZZ".
+For my solution, I simply generated a text file in the VM containing a list of possible subdomain words
+Notice that my code is not very long because I didn't get the list from a repository (repo).
+If you're totally starting from scratch in scripting, it can be a little intimidating to link a repo.
+The difference is that you may need to install, clone, and link a repo before you can use it.
+Repo has its benefits, but for the problem I'm trying to solve here, there's a simpler way--by just having a text file of the list.
+#I have attached in here the text file that I used: subdomlist.txt
+
+ffuf -u https://futurevera.thm -w subdomlist.txt -H "HOST:FUZZ.futurevera.thm"
+
+#Step 3️⃣: View the ffuf result in a text editor with /etc/hosts (I used nano. Others may use vim)
+Here you should see two subdomains (blog, support). You may have to run this a few times to get both matches, not just "blog" or "support".
+Also, make sure your list has the words, "blog" & "support", or else, you will not get a match.
+IMPORTANT: It is important that the subdomains are listed in  /etc/hosts/ .Without it, moving on to Step 4 is futile.
+
+sudo nano /etc/hosts 
+
+#Step 4️⃣: Visit the subdomains using a web browser. Inside the VM, open Firefox
+Go to: https://blog.futurevera.thm. It will give you a warning. Ignore this and click "Advanced".
+Scroll down and you should see a link to the website's certificate.
+Click that to view the certificate, or you can click the lock icon above on the address bar alternatively.
+Continue with the website anyway and there you should be able to view  futurevera's blog page.
+Then, go to: https://support.futurevera.thm , and do the same thing above
+Unlike the blog page's certificate, the support page's certificate will have a subdomain listed for "DNS"
+
+The DNS subdomain is: secrethelpdesk934752.support.futurevera.thm
+
+#Step 5️⃣: Go back to the terminal and add secrethelpdesk934752.support.futurevera.thm to /etc/hosts
+
+sudo nano /etc/hosts 
+
+#When the terminal opens, manually add:
+MACHINE_IP secrethelpdesk934752.support.futurevera.thm  and save the changes
+for example: 10.201.10.157 secrethelpdesk934752.support.futurevera.thm
+
+#STEP 6️⃣: Go back to the web browser and visit http://secrethelpdesk934752.support.futurevera.thm 
+You should be able to see the THM flag now. 
+Note: If you don't see the flag, go back to nano /etc/hosts via the terminal and add http://secrethelpdesk934752.support.futurevera.thm (no "s", just http)
+for example: 10.201.10.157 http://secrethelpdesk934752.support.futurevera.thm
+then go back to the browser and try again. 
+
+#My Note: TryHackMe may have more than one solution for this Scenario, thus, the differences (one with http, one without).
+I may have tried solving this problem way too many times. 🤣
+
+#Below is a video Walkthrough of a shorter, more straightforward approach involving less scripting, no port scans, and no subdomain fuzzing using ffuf:
+https://youtu.be/YdYOJ7SVSfg
+
