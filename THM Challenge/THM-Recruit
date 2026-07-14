@@ -3,12 +3,12 @@ Target_Machine_IP
 
 __Note: make sure to replace <target_machine_IP> with the actual Target Machine IP assigned by THM for the room__
 
-http://<target_machine_IP>  would be http://10.10.10.10
+http://<target_machine_IP>  would be http://10.66.161.50
 
 #############
 ## Q and A ##
 #############
-1. What is the flag value after logging in as a normal user?
+I. What is the flag value after logging in as a normal user?
 
 Solution:
   **1. Perfomring a Hybrid scan using rustscan (port scan) and nmap (Service Enumeration, OS / Script Scanning, at Host Discovery)**
@@ -19,15 +19,19 @@ Solution:
   **2. Performing a Directory and File Enumeration (directory busting) using feroxbuster and manual exploration**
       feroxbuster -w https://raw.githubusercontent.com/df-stack/df-stack/main/ffuf/subdomlist.txt -u http://10.66.161.50
           🔵Discovery with relevance:
-              2.1 http://10.10.10.10/mail (gives the infor of a username: "hr"
-              2.2 http://10.66.161.50/api.php  (no need for feroxbuster, simply click the "Access API" info below the login bar
-                                            (gives the info you can fetch a candidate CV using the following endpoint: /file.php?cv=<URL>
-                                            (this will lead to getting the password for "hr" user)
+              2.1 http://10.66.161.50/mail  (gives the info of a username: "hr"
+              2.2 http://10.66.161.50/api.php  (no need for feroxbuster, simply click the "Access API" info below the login bar on the web page)
+                                               (gives the info that you can fetch a candidate CV using the following endpoint: /file.php?cv=<URL> , this will lead to getting the password for "hr" user)
               2.3 http://recruit.thm//file.php?cv=file:///var/www/html/config.php (the result of combining info from 2.1 and 2.2)
              user: hr
              password: hrpassword123
+             2.4 Login to Recruit using the credentials about for "hr" user:  http://10.66.161.50
+
                                              1st flag: THM{LOGGED_IN_USER}
-                                                    
+
+
+II. What is the flag value after logging in as admin?
+
 ***PRIVILEDGE ESCALATION: Performing further vurnerability search using BurpSuite and SQLMap***
   **3. Set up BurpSuit: using the terminal, type "burpsuite" + ENTER**
       3.1 Start a new proxy with "Intercept on" activated
