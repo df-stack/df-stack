@@ -17,7 +17,7 @@ Solution:
           🔵 nmap:  -- -sC -sV -Pn
 
   **2. Performing a Directory and File Enumeration (directory busting) using feroxbuster and manual exploration**
-      feroxbuster -w https://raw.githubusercontent.com/df-stack/df-stack/main/ffuf/subdomlist.txt -u http://10.66.161.50
+      feroxbuster -w https://raw.githubusercontent.com/df-stack/df-stack/main/ffuf/wordlist.txt -u http://10.66.161.50
           🔵Discovery with relevance:
               2.1 http://10.66.161.50/mail  (gives the info of a username: "hr"
               2.2 http://10.66.161.50/api.php  (no need for feroxbuster, simply click the "Access API" info below the login bar on the web page)
